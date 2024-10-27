@@ -8,35 +8,65 @@ import {
   TooltipTrigger,
 } from "./ui/tooltip";
 import { ImagePartToolTip } from "./image-part-tooltip";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { kv } from "@vercel/kv";
 import throttle from "lodash.debounce";
+import { useAtom } from "jotai";
+import { imagePartFamily } from "@/stores";
+import confetti from "canvas-confetti";
 
-type Props = { columnIndex: number; rowIndex: number; style?: CSSProperties };
+type Props = {
+  columnIndex: number;
+  rowIndex: number;
+  style?: CSSProperties;
+  maxClicked: number;
+};
 
 export const ImagePart = (props: Props) => {
-  const queryClient = useQueryClient();
-  const clickMutation = useMutation<number, Error, { key: string }>({
-    mutationFn: (vars) => kv.incr(vars.key),
-  });
-
+  const [clickedCount, countClicked] = useAtom(
+    imagePartFamily({ id: `part__${props.columnIndex}_${props.rowIndex}` })
+  );
   const handleClick = throttle(
     () => {
-      clickMutation.mutate(
-        {
-          key: `part__${props.columnIndex}_${props.rowIndex}`,
-        },
-        {
-          onError: (e) => console.log(e),
-          onSuccess: () => {
-            queryClient.invalidateQueries({
-              queryKey: ["part", `${props.columnIndex}_${props.rowIndex}`],
-            });
-          },
-        }
-      );
+      countClicked((prev) => ({
+        count: prev.count + 1,
+      }));
+
+      const scalar = 2;
+      const unicorn = confetti.shapeFromText({ text: "🦄", scalar });
+
+      const defaults = {
+        spread: 360,
+        ticks: 60,
+        gravity: 0,
+        decay: 0.96,
+        startVelocity: 20,
+        shapes: [unicorn],
+        scalar,
+      };
+
+      const shoot = () => {
+        confetti({
+          ...defaults,
+          particleCount: 30,
+        });
+
+        confetti({
+          ...defaults,
+          particleCount: 5,
+        });
+
+        confetti({
+          ...defaults,
+          particleCount: 15,
+          scalar: scalar / 2,
+          shapes: ["circle"],
+        });
+      };
+
+      setTimeout(shoot, 0);
+      setTimeout(shoot, 100);
+      setTimeout(shoot, 200);
     },
-    300,
+    10,
     {}
   );
 
@@ -49,7 +79,12 @@ export const ImagePart = (props: Props) => {
             style={props.style}
             className="aspect-square border border-grey-500"
           >
-            <div className="bg-slate-500 hover:bg-slate-400 size-full cursor-pointer"></div>
+            <div
+              className="bg-slate-500 hover:bg-slate-400 size-full cursor-pointer"
+              style={{
+                opacity: 1 - clickedCount.count / props.maxClicked,
+              }}
+            ></div>
           </div>
         </TooltipTrigger>
         <TooltipContent>

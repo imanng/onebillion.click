@@ -6,15 +6,15 @@ import Image from "next/image";
 import { useMemo } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import React from "react";
+import { IMAGE_PART_SIZE, MAX_CLICKED_COUNT } from "@/constants";
 
 export default function Home() {
   const size = useWindowSize();
 
   const parentRef = React.useRef(null);
-
   const numberOfBox = useMemo(() => {
     if (size.width) {
-      const result = (size.width - 32) / 28;
+      const result = (size.width - 32) / IMAGE_PART_SIZE;
       return result;
     }
 
@@ -22,13 +22,17 @@ export default function Home() {
   }, [size.width]);
 
   const imageSize = useMemo(() => {
-    return numberOfBox * 28 + numberOfBox * 2;
+    return numberOfBox * IMAGE_PART_SIZE + numberOfBox * 2;
+  }, [numberOfBox]);
+
+  const maxClickedPerPart = useMemo(() => {
+    return MAX_CLICKED_COUNT / (numberOfBox * numberOfBox);
   }, [numberOfBox]);
 
   const rowVirtualizer = useVirtualizer({
     count: numberOfBox,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 28,
+    estimateSize: () => IMAGE_PART_SIZE,
     overscan: 5,
   });
 
@@ -36,7 +40,7 @@ export default function Home() {
     horizontal: true,
     count: numberOfBox,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 28,
+    estimateSize: () => IMAGE_PART_SIZE,
     overscan: 5,
   });
 
@@ -75,6 +79,7 @@ export default function Home() {
                   <ImagePart
                     columnIndex={virtualColumn.index}
                     rowIndex={virtualRow.index}
+                    maxClicked={maxClickedPerPart}
                   />
                 </div>
               ))}
