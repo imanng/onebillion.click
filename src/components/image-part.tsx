@@ -6,7 +6,7 @@ import {
   TooltipTrigger,
 } from "./ui/tooltip";
 
-type Props = { columnIndex: number; rowIndex: number; style: CSSProperties };
+type Props = { columnIndex: number; rowIndex: number; style?: CSSProperties };
 
 export const ImagePart = (props: Props) => {
   return (
