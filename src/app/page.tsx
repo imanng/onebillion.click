@@ -15,7 +15,7 @@ export default function Home() {
   const numberOfBox = useMemo(() => {
     if (size.width) {
       const result = (size.width - 32) / 28;
-      return Math.floor(result);
+      return result;
     }
 
     return 0;
