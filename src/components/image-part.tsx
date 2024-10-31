@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties } from "react";
+import { CSSProperties, useRef } from "react";
 import {
   Tooltip,
   TooltipContent,
@@ -10,7 +10,7 @@ import {
 import { ImagePartToolTip } from "./image-part-tooltip";
 import throttle from "lodash.debounce";
 import { useAtom } from "jotai";
-import { imagePartFamily } from "@/stores";
+import { imagePartFamily, selectedPartAtom } from "@/stores";
 import confetti from "canvas-confetti";
 
 type Props = {
@@ -21,11 +21,16 @@ type Props = {
 };
 
 export const ImagePart = (props: Props) => {
+  const partElmRef = useRef<HTMLDivElement | null>(null);
+  const [selectedPart, setSelectedPart] = useAtom(selectedPartAtom);
+  const partKey = `part__${props.columnIndex}_${props.rowIndex}`;
+
   const [clickedCount, countClicked] = useAtom(
-    imagePartFamily({ id: `part__${props.columnIndex}_${props.rowIndex}` })
+    imagePartFamily({ id: partKey })
   );
   const handleClick = throttle(
     () => {
+      setSelectedPart(partKey);
       countClicked((prev) => ({
         count: prev.count + 1,
       }));
@@ -43,15 +48,25 @@ export const ImagePart = (props: Props) => {
         scalar,
       };
 
+      console.log(partElmRef.current?.offsetLeft);
+
       const shoot = () => {
         confetti({
           ...defaults,
           particleCount: 30,
+          origin: {
+            x: partElmRef.current?.getBoundingClientRect().x,
+            y: partElmRef.current?.getBoundingClientRect().y,
+          },
         });
 
         confetti({
           ...defaults,
           particleCount: 5,
+          origin: {
+            x: partElmRef.current?.offsetLeft,
+            y: partElmRef.current?.offsetTop,
+          },
         });
 
         confetti({
@@ -59,6 +74,10 @@ export const ImagePart = (props: Props) => {
           particleCount: 15,
           scalar: scalar / 2,
           shapes: ["circle"],
+          origin: {
+            x: partElmRef.current?.offsetLeft,
+            y: partElmRef.current?.offsetTop,
+          },
         });
       };
 
@@ -72,12 +91,15 @@ export const ImagePart = (props: Props) => {
 
   return (
     <TooltipProvider>
-      <Tooltip>
+      <Tooltip open={selectedPart === partKey}>
         <TooltipTrigger asChild>
           <div
+            ref={partElmRef}
             onClick={handleClick}
             style={props.style}
             className="aspect-square border border-grey-500"
+            onMouseOver={() => setSelectedPart(partKey)}
+            onMouseOut={() => setSelectedPart(null)}
           >
             <div
               className="bg-slate-500 hover:bg-slate-400 size-full cursor-pointer"
