@@ -1,16 +1,10 @@
 "use client";
 
-import { CSSProperties, useRef } from "react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "./ui/tooltip";
+import { CSSProperties, memo, useRef } from "react";
 import { ImagePartToolTip } from "./image-part-tooltip";
 import throttle from "lodash.debounce";
 import { useAtom } from "jotai";
-import { imagePartFamily, selectedPartAtom } from "@/stores";
+import { imagePartFamily } from "@/stores";
 import confetti from "canvas-confetti";
 
 type Props = {
@@ -20,9 +14,9 @@ type Props = {
   maxClicked: number;
 };
 
-export const ImagePart = (props: Props) => {
+const ImagePart = memo((props: Props) => {
   const partElmRef = useRef<HTMLDivElement | null>(null);
-  const [selectedPart, setSelectedPart] = useAtom(selectedPartAtom);
+  // const [selectedPart, setSelectedPart] = useAtom(selectedPartAtom);
   const partKey = `part__${props.columnIndex}_${props.rowIndex}`;
 
   const [clickedCount, countClicked] = useAtom(
@@ -30,7 +24,7 @@ export const ImagePart = (props: Props) => {
   );
   const handleClick = throttle(
     () => {
-      setSelectedPart(partKey);
+      // setSelectedPart(partKey);
       countClicked((prev) => ({
         count: prev.count + 1,
       }));
@@ -47,8 +41,6 @@ export const ImagePart = (props: Props) => {
         shapes: [unicorn],
         scalar,
       };
-
-      console.log(partElmRef.current?.offsetLeft);
 
       const shoot = () => {
         confetti({
@@ -90,32 +82,28 @@ export const ImagePart = (props: Props) => {
   );
 
   return (
-    <TooltipProvider>
-      <Tooltip open={selectedPart === partKey}>
-        <TooltipTrigger asChild>
-          <div
-            ref={partElmRef}
-            onClick={handleClick}
-            style={props.style}
-            className="aspect-square border border-grey-500"
-            onMouseOver={() => setSelectedPart(partKey)}
-            onMouseOut={() => setSelectedPart(null)}
-          >
-            <div
-              className="bg-slate-500 hover:bg-slate-400 size-full cursor-pointer"
-              style={{
-                opacity: 1 - clickedCount.count / props.maxClicked,
-              }}
-            ></div>
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>
-          <ImagePartToolTip
-            columnIndex={props.columnIndex}
-            rowIndex={props.rowIndex}
-          />
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <div
+      ref={partElmRef}
+      onClick={handleClick}
+      style={props.style}
+      className="aspect-square border border-grey-500 group relative"
+    >
+      <div
+        className="bg-slate-500 hover:bg-slate-400 size-full cursor-pointer"
+        style={{
+          opacity: 1 - clickedCount.count / props.maxClicked,
+        }}
+      />
+      <div className="hidden group-hover:block absolute bottom-0 left-0 z-[100] bg-slate-700 text-white w-fit">
+        <ImagePartToolTip
+          columnIndex={props.columnIndex}
+          rowIndex={props.rowIndex}
+        />
+      </div>
+    </div>
   );
-};
+});
+
+ImagePart.displayName = "ImagePart";
+
+export { ImagePart };
