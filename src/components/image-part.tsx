@@ -3,8 +3,8 @@
 import { CSSProperties, memo, useRef } from "react";
 import { ImagePartToolTip } from "./image-part-tooltip";
 import throttle from "lodash.debounce";
-import { useAtom } from "jotai";
-import { imagePartFamily } from "@/stores";
+import { useAtom, useSetAtom } from "jotai";
+import { imagePartFamily, totalClicksAtom } from "@/stores";
 import confetti from "canvas-confetti";
 
 type Props = {
@@ -22,12 +22,15 @@ const ImagePart = memo((props: Props) => {
   const [clickedCount, countClicked] = useAtom(
     imagePartFamily({ id: partKey })
   );
+  const setTotalClicks = useSetAtom(totalClicksAtom);
+
   const handleClick = throttle(
     () => {
       // setSelectedPart(partKey);
       countClicked((prev) => ({
         count: prev.count + 1,
       }));
+      setTotalClicks((prev) => prev + 1);
 
       const scalar = 2;
       const unicorn = confetti.shapeFromText({ text: "🦄", scalar });
