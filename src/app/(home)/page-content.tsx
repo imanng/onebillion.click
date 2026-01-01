@@ -8,7 +8,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import React from "react";
 import { IMAGE_PART_SIZE, MAX_CLICKED_COUNT } from "@/constants";
 
-export default function Home() {
+export default function PageContent() {
   const size = useWindowSize();
 
   const parentRef = React.useRef(null);

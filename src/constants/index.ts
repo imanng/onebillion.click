@@ -1,2 +1,2 @@
-export const MAX_CLICKED_COUNT = 100000;
-export const IMAGE_PART_SIZE = 50;
+export const MAX_CLICKED_COUNT = 1000000;
+export const IMAGE_PART_SIZE = 30;
